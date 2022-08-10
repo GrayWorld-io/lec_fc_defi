@@ -39,31 +39,31 @@ describe("Exchange", () => {
 
     describe("getTokenPrice", async() => {
         it("correct get Token Price", async() => {
-            await token.approve(exchange.address, toWei(500));
-            await exchange.addLiquidity(toWei(500), { value: toWei(300) });
+            await token.approve(exchange.address, toWei(4000));
+            await exchange.addLiquidity(toWei(4000), { value: toWei(1000) });
             
             const tokenReserve = await token.balanceOf(exchange.address);
             const etherReserve = await getBalance(exchange.address);
 
             // GRAY Price
-            // Expect 0.6ETH per 1GRAY
+            // Expect 1ETH per 4GRAY
             expect(
-                (await exchange.getPrice(etherReserve, tokenReserve)).toString()
-            ).to.eq("600");
+                (await exchange.getPrice(tokenReserve, etherReserve))
+            ).to.eq(4);
         })
     })
 
     describe("EthToTokenSwap", async() => {
         it("correct EthToTokenSwap", async() => {
 
-            await token.approve(exchange.address, toWei(5000));
-            await exchange.addLiquidity(toWei(5000), { value: toWei(3000) });
+            await token.approve(exchange.address, toWei(4000));
+            await exchange.addLiquidity(toWei(4000), { value: toWei(1000) });
       
             await exchange.connect(user).ethToTokenSwap({ value: toWei(1) });
 
             expect(
-                (toEther(await token.balanceOf(user.address))).toString()
-            ).to.eq("600.0");
+                (toEther(await token.balanceOf(user.address)))
+            ).to.eq("4.0");
         })
     })
 })

@@ -19,14 +19,14 @@ contract Exchange {
     // ETH -> ERC20
     function ethToTokenSwap() public payable {
         // calculate amount out
-        uint256 amountOut = msg.value * getPrice(address(this).balance - msg.value, IERC20(token).balanceOf(address(this)));
+        uint256 amountOut = msg.value * getPrice(IERC20(token).balanceOf(address(this)), address(this).balance - msg.value);
 
         //transfer token out
         IERC20(token).transfer(msg.sender, amountOut);
     }
 
     function getPrice(uint256 inputReserve, uint256 outputReserve) public pure returns (uint256) {
-        uint256 numerator = inputReserve * 1000;
+        uint256 numerator = inputReserve;
         uint256 denominator = outputReserve;
         return numerator / denominator;
     }
