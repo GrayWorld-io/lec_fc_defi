@@ -3,9 +3,10 @@ import { expect } from "chai";
 
 import { Exchange } from "../typechain-types/contracts/Exchange"
 import { Token } from "../typechain-types/contracts/Token";
+import { BigNumber } from "ethers";
 
 const toWei = (value: number) => ethers.utils.parseEther(value.toString());
-
+const toEther = (value: BigNumber) => ethers.utils.formatEther(value);
 const getBalance = ethers.provider.getBalance;
 
 describe("Exchange", () => {
@@ -15,10 +16,11 @@ describe("Exchange", () => {
     let token: Token;
 
     beforeEach(async () => {
-        [owner, user] = await ethers.getSigners();
 
+        //기본적으로 10,000개의 Ether를 가지고 있음.
+        [owner, user] = await ethers.getSigners();
         const TokenFactory = await ethers.getContractFactory("Token");
-        token = await TokenFactory.deploy("Token", "TKN", toWei(1000000));
+        token = await TokenFactory.deploy("GrayToken", "GRAY", toWei(1000000));
         await token.deployed();
 
         const ExchangeFactory = await ethers.getContractFactory("Exchange");
@@ -27,12 +29,41 @@ describe("Exchange", () => {
     });
 
     describe("addLiquidity", async () => {
-        it("adds liquidity", async () => {
-          await token.approve(exchange.address, toWei(200));
-          await exchange.addLiquidity(toWei(200), { value: toWei(100) });
-    
-          expect(await getBalance(exchange.address)).to.equal(toWei(100));
-          expect(await token.balanceOf(exchange.address)).to.equal(toWei(200));
+        it("add liquidity", async () => {
+          await token.approve(exchange.address, toWei(500));
+          await exchange.addLiquidity(toWei(500), { value: toWei(300) });
+          expect(await getBalance(exchange.address)).to.equal(toWei(300));
+          expect(await token.balanceOf(exchange.address)).to.equal(toWei(500));
         });
       });
+
+    describe("getTokenPrice", async() => {
+        it("correct get Token Price", async() => {
+            await token.approve(exchange.address, toWei(500));
+            await exchange.addLiquidity(toWei(500), { value: toWei(300) });
+            
+            const tokenReserve = await token.balanceOf(exchange.address);
+            const etherReserve = await getBalance(exchange.address);
+
+            // GRAY Price
+            // Expect 0.6ETH per 1GRAY
+            expect(
+                (await exchange.getPrice(etherReserve, tokenReserve)).toString()
+            ).to.eq("600");
+        })
+    })
+
+    describe("EthToTokenSwap", async() => {
+        it("correct EthToTokenSwap", async() => {
+
+            await token.approve(exchange.address, toWei(5000));
+            await exchange.addLiquidity(toWei(5000), { value: toWei(3000) });
+      
+            await exchange.connect(user).ethToTokenSwap({ value: toWei(1) });
+
+            expect(
+                (toEther(await token.balanceOf(user.address))).toString()
+            ).to.eq("600.0");
+        })
+    })
 })
