@@ -37,23 +37,46 @@ describe("Exchange", () => {
         });
       });
 
-    describe("getTokenPrice", async() => {
-        it("correct get Token Price", async() => {
+    describe("getTokenAmount", async() => {
+        it("correct get Token output amount", async() => {
             await token.approve(exchange.address, toWei(4000));
             await exchange.addLiquidity(toWei(4000), { value: toWei(1000) });
             
             const tokenReserve = await token.balanceOf(exchange.address);
             const etherReserve = await getBalance(exchange.address);
-
-            // GRAY Price
-            // Expect 1ETH per 4GRAY
+            
             expect(
-                (await exchange.getPrice(tokenReserve, etherReserve))
-            ).to.eq(4);
+                toEther((await exchange.getOutputAmount(toWei(1), etherReserve, tokenReserve)))
+            ).to.eq("3.996003996003996003");
+
+            expect(
+                toEther((await exchange.getOutputAmount(toWei(1000), etherReserve, tokenReserve)))
+            ).to.eq("2000.0");
+
+            expect(
+                toEther((await exchange.getOutputAmount(toWei(2000), etherReserve, tokenReserve)))
+            ).to.eq("2666.666666666666666666");
+
+            expect(
+                toEther((await exchange.getOutputAmount(toWei(4000), etherReserve, tokenReserve)))
+            ).to.eq("3200.0");
+
+            expect(
+                toEther((await exchange.getOutputAmount(toWei(8000), etherReserve, tokenReserve)))
+            ).to.eq("3555.555555555555555555");
+
+            expect(
+                toEther((await exchange.getOutputAmount(toWei(20000), etherReserve, tokenReserve)))
+            ).to.eq("3809.523809523809523809");
+
+            expect(
+                toEther((await exchange.getOutputAmount(toWei(1000000), etherReserve, tokenReserve)))
+            ).to.eq("3996.003996003996003996");
+
         })
     })
 
-    describe("EthToTokenSwap", async() => {
+    describe.skip("EthToTokenSwap", async() => {
         it("correct EthToTokenSwap", async() => {
 
             await token.approve(exchange.address, toWei(4000));
