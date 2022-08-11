@@ -62,10 +62,6 @@ describe("Exchange", () => {
             ).to.eq("3200.0");
 
             expect(
-                toEther((await exchange.getOutputAmount(toWei(8000), etherReserve, tokenReserve)))
-            ).to.eq("3555.555555555555555555");
-
-            expect(
                 toEther((await exchange.getOutputAmount(toWei(20000), etherReserve, tokenReserve)))
             ).to.eq("3809.523809523809523809");
 
@@ -76,17 +72,53 @@ describe("Exchange", () => {
         })
     })
 
-    describe.skip("EthToTokenSwap", async() => {
+    describe("getEthAmount", async() => {
+        it("correct get Eth output amount", async() => {
+            await token.approve(exchange.address, toWei(4000));
+            await exchange.addLiquidity(toWei(4000), { value: toWei(1000) });
+            
+            const tokenReserve = await token.balanceOf(exchange.address);
+            const etherReserve = await getBalance(exchange.address);
+            
+            expect(
+                toEther((await exchange.getOutputAmount(toWei(1), tokenReserve, etherReserve)))
+            ).to.eq("0.249937515621094726");
+
+        })
+    })
+
+    describe("EthToTokenSwap", async() => {
         it("correct EthToTokenSwap", async() => {
 
             await token.approve(exchange.address, toWei(4000));
             await exchange.addLiquidity(toWei(4000), { value: toWei(1000) });
       
-            await exchange.connect(user).ethToTokenSwap({ value: toWei(1) });
+            await exchange.connect(user).ethToTokenSwap(toWei(3.99), { value: toWei(1) });
 
             expect(
                 (toEther(await token.balanceOf(user.address)))
-            ).to.eq("4.0");
+            ).to.eq("3.996003996003996003");
+        })
+    })
+
+    describe("tokenToEthSwap", async() => {
+        it("correct tokenToTehSwap", async() => {
+
+            await token.transfer(user.address, toWei(100));
+            //나의 토큰을 Exchange Contract가 가져 갈 수 있도록 approve.
+            await token.connect(user).approve(exchange.address, toWei(100));
+      
+            await token.approve(exchange.address, toWei(4000));
+            await exchange.addLiquidity(toWei(4000), { value: toWei(1000) });
+            
+            const userBalanceBeforeSwap = await getBalance(user.address);
+            await exchange.connect(user).tokenToEthSwap(toWei(4), toWei(0.99) );
+            const userBalanceAfterSwap = await getBalance(user.address);
+
+            // Require set gas price on 'hardhat.config.ts' to pass this test.
+            expect(
+                (toEther(userBalanceAfterSwap.sub(userBalanceBeforeSwap)).toString())
+            ).to.eq("0.989948634");
         })
     })
 })

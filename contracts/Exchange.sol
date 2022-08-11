@@ -13,16 +13,31 @@ contract Exchange {
     }
     
     function addLiquidity(uint256 _tokenAmount) public payable {
-        token.transferFrom(msg.sender, address(this), _tokenAmount);
+        require(token.transferFrom(msg.sender, address(this), _tokenAmount));
     }
   
     // ETH -> ERC20
-    function ethToTokenSwap() public payable {
+    function ethToTokenSwap(uint256 _minTokens) public payable {
+
+        uint256 tokenReserve = token.balanceOf(address(this));
         // calculate amount out
-        uint256 amountOut = getOutputAmount(msg.value, IERC20(token).balanceOf(address(this)), address(this).balance - msg.value);
+        uint256 outputAmount = getOutputAmount(msg.value, address(this).balance - msg.value, tokenReserve);
+
+        require(outputAmount >= _minTokens, "Insufficient output Amount");
 
         //transfer token out
-        IERC20(token).transfer(msg.sender, amountOut);
+        require(token.transfer(msg.sender, outputAmount));
+    }
+
+    // ERC20 -> ETH
+    function tokenToEthSwap (uint256 _tokenSold, uint256 _minEth) public {
+        uint256 tokenReserve = token.balanceOf(address(this));
+        uint256 outputAmount = getOutputAmount(_tokenSold, tokenReserve, address(this).balance);
+
+        require(outputAmount >= _minEth, "Insufficient output Amount");
+
+        payable(msg.sender).transfer(_minEth);
+        require(token.transferFrom(msg.sender, address(this), _tokenSold));
     }
     
     function getOutputAmount(uint256 inputAmount, uint256 inputReserve, uint256 outputReserve) public pure returns (uint256) {
