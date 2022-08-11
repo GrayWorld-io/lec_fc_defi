@@ -30,40 +30,49 @@ describe("Exchange", () => {
 
     describe("addLiquidity", async () => {
         it("add liquidity", async () => {
-          await token.approve(exchange.address, toWei(500));
-          await exchange.addLiquidity(toWei(500), { value: toWei(300) });
-          expect(await getBalance(exchange.address)).to.equal(toWei(300));
-          expect(await token.balanceOf(exchange.address)).to.equal(toWei(500));
+          await token.approve(exchange.address, toWei(1000));
+          await exchange.addLiquidity(toWei(1000), { value: toWei(1000) });
+          expect(await getBalance(exchange.address)).to.equal(toWei(1000));
+          expect(await token.balanceOf(exchange.address)).to.equal(toWei(1000));
         });
       });
 
     describe("getTokenPrice", async() => {
         it("correct get Token Price", async() => {
-            await token.approve(exchange.address, toWei(4000));
-            await exchange.addLiquidity(toWei(4000), { value: toWei(1000) });
+            await token.approve(exchange.address, toWei(1000));
+            await exchange.addLiquidity(toWei(1000), { value: toWei(1000) });
             
             const tokenReserve = await token.balanceOf(exchange.address);
             const etherReserve = await getBalance(exchange.address);
 
             // GRAY Price
-            // Expect 1ETH per 4GRAY
+            // Expect 1ETH per 1GRAY
             expect(
                 (await exchange.getPrice(tokenReserve, etherReserve))
-            ).to.eq(4);
+            ).to.eq(1);
         })
     })
 
     describe("EthToTokenSwap", async() => {
         it("correct EthToTokenSwap", async() => {
 
-            await token.approve(exchange.address, toWei(4000));
-            await exchange.addLiquidity(toWei(4000), { value: toWei(1000) });
+            await token.approve(exchange.address, toWei(1000));
+            await exchange.addLiquidity(toWei(1000), { value: toWei(1000) });
       
             await exchange.connect(user).ethToTokenSwap({ value: toWei(1) });
 
             expect(
                 (toEther(await token.balanceOf(user.address)))
-            ).to.eq("4.0");
+            ).to.eq("1.0");
+
+            expect(
+                (toEther(await token.balanceOf(exchange.address)))
+            ).to.eq("999.0");
+
+            expect(
+                (toEther(await getBalance(exchange.address)))
+            ).to.eq("1001.0");
+            
         })
     })
 })
