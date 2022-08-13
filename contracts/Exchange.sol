@@ -4,16 +4,46 @@ pragma solidity ^0.8.9;
 import "hardhat/console.sol";
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract Exchange {
+contract Exchange is ERC20 {
     IERC20 token;
 
-    constructor (address _token) {
+    constructor (address _token) ERC20("Gray Uniswap V2", "GUNI-V2") {
         token = IERC20(_token);
     }
     
-    function addLiquidity(uint256 _tokenAmount) public payable {
-        require(token.transferFrom(msg.sender, address(this), _tokenAmount));
+    function addLiquidity(uint256 _maxTokens) public payable returns (uint256) {
+        uint256 totalLiquidity = totalSupply();
+        if (totalLiquidity > 0) {
+            uint256 ethReserve = address(this).balance - msg.value;
+            uint256 tokenReserve = token.balanceOf(address(this));
+            uint256 tokenAmount = msg.value * tokenReserve / ethReserve;
+            require(_maxTokens >= tokenAmount);
+            require(token.transferFrom(msg.sender, address(this), tokenAmount));
+            uint256 liquidityMinted = totalLiquidity * msg.value / ethReserve;
+            _mint(msg.sender, liquidityMinted);
+            return liquidityMinted;
+        } else {
+            uint256 tokenAmount = _maxTokens;
+            uint256 initialLiquidity = address(this).balance;
+            _mint(msg.sender, initialLiquidity);
+            require(token.transferFrom(msg.sender, address(this), tokenAmount));
+            return initialLiquidity;
+        }
+    }
+
+    function removeLiquidity(uint256 _lpToken) public returns (uint256, uint256) {
+        uint256 totalLiquidity = totalSupply();
+        uint256 ethAmount = _lpToken * address(this).balance / totalLiquidity;
+        uint256 tokenReserve = token.balanceOf(address(this));
+        uint256 tokenAmount = _lpToken * tokenReserve / totalLiquidity;
+
+        _burn(msg.sender, _lpToken);
+
+        payable(msg.sender).transfer(ethAmount);
+        token.transfer(msg.sender, tokenAmount);
+        return (ethAmount, tokenAmount);
     }
   
     // ETH -> ERC20
