@@ -71,8 +71,16 @@ contract Exchange is ERC20 {
     }
     
     function getOutputAmount(uint256 inputAmount, uint256 inputReserve, uint256 outputReserve) public pure returns (uint256) {
-        uint256 numerator = (inputAmount * outputReserve);
-        uint256 denominator = (inputReserve + inputAmount);
+        uint256 inputAmountWithFee = inputAmount * 99;
+        uint256 numerator = (inputAmountWithFee * outputReserve);
+        uint256 denominator = (inputReserve * 100 + inputAmountWithFee);
+        return numerator / denominator;
+    }
+
+    function getOutputAmountNoFee(uint256 inputAmount, uint256 inputReserve, uint256 outputReserve) public pure returns (uint256) {
+        uint256 inputAmountWithFee = inputAmount;
+        uint256 numerator = (inputAmountWithFee * outputReserve);
+        uint256 denominator = (inputReserve + inputAmountWithFee);
         return numerator / denominator;
     }
 

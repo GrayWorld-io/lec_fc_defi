@@ -20,7 +20,7 @@ describe("Exchange", () => {
         //기본적으로 10,000개의 Ether를 가지고 있음.
         [owner, user] = await ethers.getSigners();
         const TokenFactory = await ethers.getContractFactory("Token");
-        token = await TokenFactory.deploy("GrayToken", "GRAY", toWei(1000000));
+        token = await TokenFactory.deploy("GrayToken", "GRAY", toWei(50));
         await token.deployed();
 
         const ExchangeFactory = await ethers.getContractFactory("Exchange");
@@ -28,7 +28,7 @@ describe("Exchange", () => {
         await exchange.deployed();
     });
 
-    describe("addLiquidity", async () => {
+    describe.skip("addLiquidity", async () => {
         it("add liquidity", async () => {
             await token.approve(exchange.address, toWei(1000));
             await exchange.addLiquidity(toWei(1000), { value: toWei(1000) });
@@ -45,7 +45,7 @@ describe("Exchange", () => {
         });
     });
 
-    describe("removeLiquidity", async () => {
+    describe.skip("removeLiquidity", async () => {
         it("correct remove liquidity", async () => {
             await token.approve(exchange.address, toWei(500));
             await exchange.addLiquidity(toWei(500), { value: toWei(1000) });
@@ -65,88 +65,27 @@ describe("Exchange", () => {
         });
     });
 
-    describe("getTokenAmount", async () => {
-        it("correct get Token output amount", async () => {
-            await token.approve(exchange.address, toWei(4000));
-            await exchange.addLiquidity(toWei(4000), { value: toWei(1000) });
+    describe("addLiquidity", async () => {
+        it("add liquidity", async () => {
+            await token.approve(exchange.address, toWei(50));
 
-            const tokenReserve = await token.balanceOf(exchange.address);
-            const etherReserve = await getBalance(exchange.address);
+            // 유동성 공급 ETH 50, GRAY 50
+            await exchange.addLiquidity(toWei(50), { value: toWei(50) });
+            
+            // 유저 ETH 30, GRAY 18.6323713927227 스왑
+            await exchange.connect(user).ethToTokenSwap(toWei(18), { value: toWei(30)});
 
-            expect(
-                toEther((await exchange.getOutputAmount(toWei(1), etherReserve, tokenReserve)))
-            ).to.eq("3.996003996003996003");
+            // 스왑 후 유저의 GRAY 잔액: 18.6323713927227
+            expect(toEther((await token.balanceOf(user.address))).toString()).to.equal("18.632371392722710163");
 
-            expect(
-                toEther((await exchange.getOutputAmount(toWei(1000), etherReserve, tokenReserve)))
-            ).to.eq("2000.0");
+            // owner의 유동성 제거
+            await exchange.removeLiquidity(toWei(50));
 
-            expect(
-                toEther((await exchange.getOutputAmount(toWei(2000), etherReserve, tokenReserve)))
-            ).to.eq("2666.666666666666666666");
+            // onwer의 잔고는 50 - 18.632371392722710163인 31.367628607277289837 이다.
+            expect(toEther(await token.balanceOf(owner.address)).toString()).to.equal("31.367628607277289837");
+        });
+    });
 
-            expect(
-                toEther((await exchange.getOutputAmount(toWei(4000), etherReserve, tokenReserve)))
-            ).to.eq("3200.0");
 
-            expect(
-                toEther((await exchange.getOutputAmount(toWei(20000), etherReserve, tokenReserve)))
-            ).to.eq("3809.523809523809523809");
 
-            expect(
-                toEther((await exchange.getOutputAmount(toWei(1000000), etherReserve, tokenReserve)))
-            ).to.eq("3996.003996003996003996");
-
-        })
-    })
-
-    describe("getEthAmount", async () => {
-        it("correct get Eth output amount", async () => {
-            await token.approve(exchange.address, toWei(4000));
-            await exchange.addLiquidity(toWei(4000), { value: toWei(1000) });
-
-            const tokenReserve = await token.balanceOf(exchange.address);
-            const etherReserve = await getBalance(exchange.address);
-
-            expect(
-                toEther((await exchange.getOutputAmount(toWei(1), tokenReserve, etherReserve)))
-            ).to.eq("0.249937515621094726");
-
-        })
-    })
-
-    describe("EthToTokenSwap", async () => {
-        it("correct EthToTokenSwap", async () => {
-
-            await token.approve(exchange.address, toWei(4000));
-            await exchange.addLiquidity(toWei(4000), { value: toWei(1000) });
-
-            await exchange.connect(user).ethToTokenSwap(toWei(3.99), { value: toWei(1) });
-
-            expect(
-                (toEther(await token.balanceOf(user.address)))
-            ).to.eq("3.996003996003996003");
-        })
-    })
-
-    describe("tokenToEthSwap", async () => {
-        it("correct tokenToTehSwap", async () => {
-
-            await token.transfer(user.address, toWei(100));
-            //나의 토큰을 Exchange Contract가 가져 갈 수 있도록 approve.
-            await token.connect(user).approve(exchange.address, toWei(100));
-
-            await token.approve(exchange.address, toWei(4000));
-            await exchange.addLiquidity(toWei(4000), { value: toWei(1000) });
-
-            const userBalanceBeforeSwap = await getBalance(user.address);
-            await exchange.connect(user).tokenToEthSwap(toWei(4), toWei(0.99));
-            const userBalanceAfterSwap = await getBalance(user.address);
-
-            // Require set gas price on 'hardhat.config.ts' to pass this test.
-            expect(
-                (toEther(userBalanceAfterSwap.sub(userBalanceBeforeSwap)).toString())
-            ).to.eq("0.989948634");
-        })
-    })
 })
