@@ -47,21 +47,21 @@ describe("Exchange", () => {
 
     describe("removeLiquidity", async () => {
         it("correct remove liquidity", async () => {
-            await token.approve(exchange.address, toWei(1000));
-            await exchange.addLiquidity(toWei(1000), { value: toWei(1000) });
+            await token.approve(exchange.address, toWei(500));
+            await exchange.addLiquidity(toWei(500), { value: toWei(1000) });
             expect(await getBalance(exchange.address)).to.equal(toWei(1000));
-            expect(await token.balanceOf(exchange.address)).to.equal(toWei(1000));
+            expect(await token.balanceOf(exchange.address)).to.equal(toWei(500));
             expect(await exchange.balanceOf(owner.address)).to.equal(toWei(1000));
 
 
             await token.transfer(user.address, toWei(2000));
             //나의 토큰을 Exchange Contract가 가져 갈 수 있도록 approve.
-            await token.connect(user).approve(exchange.address, toWei(500));
-            await exchange.connect(user).addLiquidity(toWei(500), { value: toWei(500)});
-            expect(await token.balanceOf(exchange.address)).to.equal(toWei(1500));
+            await token.connect(user).approve(exchange.address, toWei(100));
+            await exchange.connect(user).addLiquidity(toWei(100), { value: toWei(200)});
+            expect(await token.balanceOf(exchange.address)).to.equal(toWei(600));
 
-            await exchange.removeLiquidity(toWei(500))
-            expect(await token.balanceOf(exchange.address)).to.equal(toWei(1000));
+            await exchange.removeLiquidity(toWei(600))
+            expect(await token.balanceOf(exchange.address)).to.equal(toWei(300));
         });
     });
 
