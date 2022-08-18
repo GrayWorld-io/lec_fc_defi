@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 import "./interfaces/IFactory.sol";
+import "./interfaces/IExchange.sol";
 
 contract Exchange is ERC20 {
     IERC20 token;
@@ -52,15 +53,12 @@ contract Exchange is ERC20 {
   
     // ETH -> ERC20
     function ethToTokenSwap(uint256 _minTokens) public payable {
+        ethToToken(_minTokens, msg.sender);
+    }
 
-        uint256 tokenReserve = token.balanceOf(address(this));
-        // calculate amount out
-        uint256 outputAmount = getOutputAmount(msg.value, address(this).balance - msg.value, tokenReserve);
-
-        require(outputAmount >= _minTokens, "Insufficient output Amount");
-
-        //transfer token out
-        require(token.transfer(msg.sender, outputAmount));
+    // ETH -> ERC20
+    function ethToTokenTransfer(uint256 _minTokens, address _recipient) public payable {
+        ethToToken(_minTokens, _recipient);
     }
 
     // ERC20 -> ETH
@@ -74,6 +72,33 @@ contract Exchange is ERC20 {
         require(token.transferFrom(msg.sender, address(this), _tokenSold));
     }
     
+    function tokenToTokenSwap(
+        uint256 _tokenSold, 
+        uint256 _minTokenBought, 
+        uint256 _minEthBought,
+        address _tokenAddress) public {
+        address toTokenExchangeAddress = factory.getExchange(_tokenAddress);
+
+        //ERC20 -> ETH
+        uint256 ethOutputAmount = getOutputAmount(_tokenSold, token.balanceOf(address(this)), address(this).balance);
+        require(_minEthBought <= ethOutputAmount, "Insufficient eth output amount");
+        require(token.transferFrom(msg.sender, address(this), _tokenSold), "fail transfer");
+
+        //ETH -> ERC20
+        IExchange(toTokenExchangeAddress).ethToTokenTransfer{value: ethOutputAmount}(_minTokenBought, msg.sender);
+    }
+
+    function ethToToken(uint256 _minTokens, address _recipient) private {
+        uint256 tokenReserve = token.balanceOf(address(this));
+        // calculate amount out
+        uint256 outputAmount = getOutputAmount(msg.value, address(this).balance - msg.value, tokenReserve);
+
+        require(outputAmount >= _minTokens, "Insufficient output Amount");
+
+        //transfer token out
+        require(token.transfer(_recipient, outputAmount));
+    }
+
     function getOutputAmount(uint256 inputAmount, uint256 inputReserve, uint256 outputReserve) public pure returns (uint256) {
         uint256 inputAmountWithFee = inputAmount * 99;
         uint256 numerator = (inputAmountWithFee * outputReserve);
