@@ -6,11 +6,15 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
+import "./interfaces/IFactory.sol";
+
 contract Exchange is ERC20 {
     IERC20 token;
+    IFactory factory;
 
     constructor (address _token) ERC20("Gray Uniswap V2", "GUNI-V2") {
         token = IERC20(_token);
+        factory = IFactory(msg.sender);
     }
     
     function addLiquidity(uint256 _maxTokens) public payable returns (uint256) {
