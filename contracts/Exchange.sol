@@ -93,7 +93,8 @@ contract Exchange is ERC20 {
         token.transfer(msg.sender, tokenAmount);
 
         emit RemoveLiquidity(msg.sender, ethAmount, tokenAmount);
-        
+        emit Transfer(msg.sender, address(0), _lpToken);
+
         return (ethAmount, tokenAmount);
     }
 
