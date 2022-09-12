@@ -90,6 +90,14 @@ describe("Exchange", () => {
 
     describe("tokenToTokenSwap", async () => {
         it("correct tokenToTokenSwap", async () => {
+
+        });
+    });
+
+
+
+    describe("tokenToTokenSwap", async () => {
+        it("correct tokenToTokenSwap", async () => {
             //기본적으로 10,000개의 Ether를 가지고 있음.
             [owner, user] = await ethers.getSigners();
 
