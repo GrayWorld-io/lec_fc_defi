@@ -11,7 +11,7 @@ const config: HardhatUserConfig = {
       gasPrice: 875000000
     },
     rinkeby: {
-      url: 'https://ethereum-rinkeby-rpc.allthatnode.com/0gjSilWHrQDegZJglnf5bOcPuVM5nIzC',
+      url: 'https://eth-rinkeby.alchemyapi.io/v2/QTf8Pk_9sggTwzU7pA-V3Ttxe3-N1XOX',
       accounts: ['54f5584dc94d45a3989ee95e01e179fc175e65700f8051c9506d41fa74b19461']
     }
   },

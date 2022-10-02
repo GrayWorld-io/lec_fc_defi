@@ -1,4 +1,5 @@
 import { ethers } from "hardhat";
+import * as Constants from "./constants";
 
 async function main() {
   const [deployer] = await ethers.getSigners();
@@ -8,20 +9,14 @@ async function main() {
     deployer.address
   );
 
-	const Factory = await ethers.getContractFactory("Factory");
-	const contract = await Factory.deploy();
-
-  const GrayToken = await ethers.getContractFactory("Token");
-	const grayTokenContract = await GrayToken.deploy("GrayToken", "GRAY", 1000);
-
-
-	console.log("Contract deployed at:", contract.address);
-	console.log("Contract2 deployed at:", grayTokenContract.address);
-
-  const Exchnage = await ethers.getContractFactory("Exchange");
-  const exchangeContract = await Exchnage.deploy(grayTokenContract.address);
+  const TimelockFactory = await ethers.getContractFactory("Timelock");
+  const TimelockContract = await TimelockFactory.deploy(deployer.address, 10);
   
-  console.log(exchangeContract.address);
+  console.log("Timelock Contract deployed at:", TimelockContract.address);
+  
+  const MasterChefFactory = await ethers.getContractFactory("MasterChef");
+  const MasterChefContract = await MasterChefFactory.deploy(Constants.ADDRESSES.GrayToken, Constants.ADDRESSES.Commission, Constants.REWARD_PER_BLOCK);
+  console.log("MasterChef Contract deployed at:", MasterChefContract.address)
 }
 
 // We recommend this pattern to be able to use async/await everywhere
