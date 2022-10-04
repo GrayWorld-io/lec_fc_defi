@@ -11,8 +11,10 @@ async function main() {
     const TimelockFactory = await ethers.getContractFactory("Timelock");
     const TimelockContract = await TimelockFactory.attach(ADDRESSES.Timelock);
 
-    const allocPoint = MasterChefConstants.POOL_ADD_ETH_GUSD_ALLOC_POINT;
-    const lpAddress = MasterChefConstants.POOL_ADD_ETH_GUSD_PAIR_ADDRESS;
+    const allocPoint = MasterChefConstants.POOL_ADD_ETH_GRAY_ALLOC_POINT;
+    const lpAddress = MasterChefConstants.POOL_ADD_ETH_GRAY_PAIR_ADDRESS;
+    // const allocPoint = MasterChefConstants.POOL_ADD_ETH_GUSD_ALLOC_POINT;
+    // const lpAddress = MasterChefConstants.POOL_ADD_ETH_GUSD_PAIR_ADDRESS;
 
     const itf = new Interface(MasterChef__factory.abi);
     const encodedData = itf.encodeFunctionData(MasterChefConstants.POOL_ADD_FUNCTION, [allocPoint, lpAddress, false])
@@ -27,7 +29,7 @@ async function main() {
     const targetAddress = ADDRESSES.Masterchef;
     const functionSignature = MasterChefConstants.POOL_ADD_FUNCTION_SIGNATURE;
     const callData = arrayify('0x' + encodedData.substring(10));
-    const targetTimeStamp = 1664709079;
+    const targetTimeStamp = 1664785458;
     // await TimelockContract.queueTransaction(targetAddress, 0, functionSignature, callData, targetTimeStamp);
     await TimelockContract.executeTransaction(targetAddress, 0, functionSignature, callData, targetTimeStamp);
 }

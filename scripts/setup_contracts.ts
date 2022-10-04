@@ -7,11 +7,11 @@ async function main() {
     const TimelockFactory = await ethers.getContractFactory("Timelock");
     const TimelockContract = await TimelockFactory.attach(ADDRESSES.Timelock);
     await TimelockContract.setPendingAdmin(deployer.address);
-    await TimelockContract.acceptAdmin();
+    // await TimelockContract.acceptAdmin();
 
-    const MasterChefFactory = await ethers.getContractFactory("MasterChef");
-    const MasterChefContract = await MasterChefFactory.attach(ADDRESSES.Masterchef);
-    await MasterChefContract.transferOwnership(ADDRESSES.Timelock);
+    // const MasterChefFactory = await ethers.getContractFactory("MasterChef");
+    // const MasterChefContract = await MasterChefFactory.attach(ADDRESSES.Masterchef);
+    // await MasterChefContract.transferOwnership(ADDRESSES.Timelock);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

@@ -193,4 +193,8 @@ contract Exchange is ERC20 {
         uint256 denominator = (inputReserve + inputAmountWithFee);
         return numerator / denominator;
     }
+
+    function getEthBalance() public view returns (uint256) {
+        return address(this).balance;
+    }
 }
