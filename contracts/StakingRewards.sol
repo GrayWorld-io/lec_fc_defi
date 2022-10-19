@@ -6,11 +6,8 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract StakingRewards is Ownable {
-    IERC20 public immutable stakingToken;
-    IERC20 public immutable rewardsToken;
-
-    // 스테이킹이 끝나는 시간
-    uint256 public periodFinish = 0;
+    IERC20 public stakingToken;
+    IERC20 public rewardsToken;
 
     // 초당 리워드의 개수
     uint256 public rewardRate = 0;
@@ -18,16 +15,19 @@ contract StakingRewards is Ownable {
     // 스테이킹 기간
     uint256 public rewardsDuration = 365 days;
 
-    //마지막 업데이트 시간(스테이킹 수량 변경 시점)
+    // 스테이킹이 끝나는 시간
+    uint256 public periodFinish = 0;
+
+    //마지막 업데이트 시간(스테이킹 수량(totalStakingAmountAtTime) 혹은 설정 변경 시점)
     uint256 public lastUpdateTime;
 
-    // 현재 구간에서 시간 변화에 따른 리워드 총합 / totalSupply
+    // 각 구간별 토큰당 리워드의 누적값(전체 구간의 리워드)
     uint256 public rewardPerTokenStored;
 
-    // 이미 획득한 리워드의 총합(스테이킹 자산 0인 구간도 포함)
+    // 이미 계산된 유저의 리워드 총합
     mapping(address => uint256) public userRewardPerTokenPaid;
 
-    // 출금 가능한 누적된 리워드의 총합
+    // 출금 가능한 누적된 리워드의 총합(누작 보상)
     mapping(address => uint256) public rewards;
 
     //전체 스테이킹된 토큰 개수
@@ -71,11 +71,6 @@ contract StakingRewards is Ownable {
         }
     }
 
-    function exit() external {
-        withdraw(_balances[msg.sender]);
-        getReward();
-    }
-
     function notifyRewardAmount(uint256 reward)
         external
         onlyOwner
@@ -111,6 +106,13 @@ contract StakingRewards is Ownable {
         return block.timestamp < periodFinish ? block.timestamp : periodFinish;
     }
 
+    /*
+        rewardPerToken:
+        구간에서 스테이킹 토큰 하나당 보상 토큰의 개수를 의미.
+        예: 총 스테이킹량이 100개이고 전체 보상이 1만개인 경우에 스테이킹 토큰당 보상 리워드는 10개이다.
+
+        rewardPerTokenStored: 구간 변화에 따른 rewardPerToken의 누적값
+    */
     function rewardPerToken() public view returns (uint256) {
         if (_totalSupply == 0) {
             return rewardPerTokenStored;
@@ -124,14 +126,15 @@ contract StakingRewards is Ownable {
 
     // 지금까지 나의 총 보상을 조회
     function earned(address account) public view returns (uint256) {
-        // _balances[account] * rewardPerToken() -> account의 총 보상
-        // _balances[account] * userRewardPerTokenPaid[account] -> 내가 이미 획득한 보상
+        // _balances[account] * rewardPerToken() -> account의 전체 구간의 보상
+        // _balances[account] * userRewardPerTokenPaid[account] -> 이미 계산된 바로 전 구간의 보상
         // rewards[account] account가 출금 가능한 누적된 보상
         return
             (_balances[account] *
                 (rewardPerToken() - userRewardPerTokenPaid[account])) /
             1e18 +
             rewards[account];
+            
     }
 
     modifier updateReward(address account) {

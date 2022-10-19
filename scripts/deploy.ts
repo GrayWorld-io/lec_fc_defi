@@ -9,19 +9,22 @@ async function main() {
     deployer.address
   );
 
-  const TimelockFactory = await ethers.getContractFactory("Timelock");
-  const TimelockContract = await TimelockFactory.deploy(deployer.address, 10); //10sec delay
+  // const TimelockFactory = await ethers.getContractFactory("Timelock");
+  // const TimelockContract = await TimelockFactory.deploy(deployer.address, 10); //10sec delay
   
-  console.log("Timelock Contract deployed at:", TimelockContract.address);
+  // console.log("Timelock Contract deployed at:", TimelockContract.address);
   
   const MasterChefFactory = await ethers.getContractFactory("MasterChef");
-  const MasterChefContract = await MasterChefFactory.deploy(Constants.ADDRESSES.GrayToken, Constants.ADDRESSES.Commission, Constants.REWARD_PER_BLOCK);
-  console.log("MasterChef Contract deployed at:", MasterChefContract.address)
-
-  const MulticallFactory = await ethers.getContractFactory("Multicall");
-  const MulticallContract = await MulticallFactory.deploy();
+  const startBlock = 7783650;
+  console.log(Constants.REWARD_PER_BLOCK)
+  const MasterChefContract = await MasterChefFactory.deploy(Constants.ADDRESSES.GrayToken, Constants.ADDRESSES.Commission, Constants.REWARD_PER_BLOCK, startBlock);
   
-  console.log("Multicall Contract deployed at:", MulticallContract.address);
+  // console.log("MasterChef Contract deployed at:", MasterChefContract.address)
+
+  // const MulticallFactory = await ethers.getContractFactory("Multicall");
+  // const MulticallContract = await MulticallFactory.deploy();
+  
+  // console.log("Multicall Contract deployed at:", MulticallContract.address);
   
 }
 

@@ -29,9 +29,12 @@ async function main() {
     const targetAddress = ADDRESSES.Masterchef;
     const functionSignature = MasterChefConstants.POOL_ADD_FUNCTION_SIGNATURE;
     const callData = arrayify('0x' + encodedData.substring(10));
-    const targetTimeStamp = 1664785458;
-    // await TimelockContract.queueTransaction(targetAddress, 0, functionSignature, callData, targetTimeStamp);
-    await TimelockContract.executeTransaction(targetAddress, 0, functionSignature, callData, targetTimeStamp);
+    // console.log(encodedData)
+    // let timestampSecond = Math.floor(+ new Date() / 1000); //1665983555
+    let timestampSecond = 1666089655;
+    const eta = timestampSecond + 11; //현재 시간보다 11초 후에 execute 되어야 한다.
+    // await TimelockContract.queueTransaction(targetAddress, 0, functionSignature, callData, eta);
+    await TimelockContract.executeTransaction(targetAddress, 0, functionSignature, callData, eta);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

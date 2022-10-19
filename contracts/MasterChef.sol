@@ -64,11 +64,13 @@ contract MasterChef is Ownable {
     constructor(
         GrayToken _gray,
         address _devaddr,
-        uint256 _grayPerBlock
+        uint256 _grayPerBlock,
+        uint256 _startBlock
     ) {
         gray = _gray;
         devaddr = _devaddr;
         grayPerBlock = _grayPerBlock;
+        startBlock = _startBlock;
     }
 
     function poolLength() external view returns (uint256) {
@@ -104,13 +106,8 @@ contract MasterChef is Ownable {
         uint256 prevAllocPoint = poolInfo[_pid].allocPoint;
         poolInfo[_pid].allocPoint = _allocPoint;
         if (prevAllocPoint != _allocPoint) {
-            totalAllocPoint = totalAllocPoint- prevAllocPoint + _allocPoint;
+            totalAllocPoint = totalAllocPoint - prevAllocPoint + _allocPoint;
         }
-    }
-
-    // Return reward multiplier over the given _from to _to block.
-    function getMultiplier(uint256 _from, uint256 _to) public pure returns (uint256) {
-        return _to - _from;
     }
 
     // View function to see pending CAKEs on frontend.
@@ -127,6 +124,11 @@ contract MasterChef is Ownable {
         return user.amount * accGrayPerShare / 1e12 - user.rewardDebt;
     }
  
+    // Return reward multiplier over the given _from to _to block.
+    function getMultiplier(uint256 _from, uint256 _to) public pure returns (uint256) {
+        return _to - _from;
+    }
+    
     // Update reward variables for all pools. Be careful of gas spending!
     function massUpdatePools() public {
         uint256 length = poolInfo.length;
